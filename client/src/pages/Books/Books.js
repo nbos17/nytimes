@@ -18,9 +18,6 @@ class Books extends Component {
     deleted: false,
     results: [],
     saved: []
-
-    // author: "",
-    // synopsis: ""
   };
 
   componentDidMount() {
@@ -62,7 +59,24 @@ class Books extends Component {
     let valid = this.validateDates();
     if (valid) {
         this.searchAPI();
+        // this.saveSearchResult();
     }
+  };
+
+  saveSearchResult = () => {
+    console.log("In save search result!");
+    console.log(this.state.results[0].headline.main);
+    console.log(this.state.results[0].web_url);
+    console.log(this.state.results[0]._id);
+    // for (let i=0; i<state.results.length; i++){
+      API.saveBook({
+        title: this.state.results[0].headline.main,
+        url: this.state.results[0].web_url,
+        nytid: this.state.results[0]._id
+      })
+    // }
+    // .then(res => this.loadBooks())
+    .catch(err => console.log(err));
   };
 
   validateDates = () => {
@@ -88,19 +102,21 @@ class Books extends Component {
     console.log("query: " + query);
 
     API.search(query)
-    .then(res => {this.setState({results: res.data.response.docs})})
-     // console.log("API+++++++++++++++++++++++");
-     // // console.log(this.res);
-     // // console.log(this.state)
-    .catch(err => console.log(err));
+      .then(res => 
+        {
+        this.setState({results: res.data.response.docs}, () => {
+          console.log("API+++++++++++++++++++++++");
+          console.log(this.state)
+          // this.saveSearchResult();
+        });
+      })
+      .catch(err => console.log(err));
 
     this.setState({
       search: "",
       startDate: "",
       endDate: ""
     })
-    console.log("API+++++++++++++++++++++++");
-    console.log(this.state);
   };
 
 
@@ -152,27 +168,38 @@ class Books extends Component {
             <Jumbotron>
               <h1>NYT Articles Found</h1>
             </Jumbotron>
-            {this.state.books.length ? (
-              <List>
-                {this.state.books.map(book => (
-                  <ListItem key={book._id}>
-                    <Link to={"/books/" + book._id}>
-                      <strong>
-                        {book.title} by {book.author}
-                      </strong>
-                    </Link>
-                    <DeleteBtn onClick={() => this.deleteBook(book._id)} />
-                  </ListItem>
-                ))}
-              </List>
+              {this.state.results.length ? (
+                <List>
+                  {this.state.results.map((oneitem, index) => (
+                    
+                    
+                    <ListItem
+                      key={this.state.results[index]._id}
+                      nytid={this.state.results[index]._id}
+                      title={this.state.results[index].headline.main}
+                      url={this.state.results[index].web_url}>
+                
+                      <DeleteBtn onClick={() => this.deleteBook(this.state.results[index]._id)} />
+                    </ListItem>
+                    
+                    
+                  ))}
+                
+                </List>
+
             ) : (
               <h3>No Results to Display</h3>
             )}
           </Col>
         </Row>
+         
       </Container>
     );
   }
 }
 
 export default Books;
+
+
+
+// <DeleteBtn onClick={() => this.deleteBook(this.state.results[index]._id)} />
